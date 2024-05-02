@@ -68,6 +68,7 @@ public class MainWindow extends JFrame {
                         return;
                     }
 
+                    reactorsOwner.getReactorMap().clear();
                     getUniversalReactorImporter().importReactorsFromFile(file, reactorsOwner);
 
                     fillTree();
@@ -105,7 +106,6 @@ public class MainWindow extends JFrame {
 
     private void fillTree() {
         DefaultTreeModel treeModel = (DefaultTreeModel) reactorsTree.getModel();
-
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Реакторы");
 
         for (String type : reactorsOwner.getReactorMap().keySet()) {
