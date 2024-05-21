@@ -5,6 +5,7 @@ import Reactors.ReactorType;
 import Reactors.ReactorsTypesOwner;
 import Regions.Regions;
 
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,9 +14,9 @@ import java.util.Map;
 
 public class DatabaseImporter {
 
-    private static final String DB_URL = "jdbc:sqlite:files/nuclear_reactors.db";
+    public static Map<String, List<Reactor>> importReactors(File file) throws SQLException {
+        String DB_URL = "jdbc:sqlite:" + file.getAbsolutePath();
 
-    public static Map<String, List<Reactor>> importReactors() throws SQLException {
         ReactorsTypesOwner typesOwner = new ReactorsTypesOwner();
         Map<String, ReactorType> types = typesOwner.getReactorMap();
 
@@ -77,14 +78,16 @@ public class DatabaseImporter {
             }
 
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             throw new SQLException(e);
         }
 
         return reactorsByCountry;
     }
 
-    public static Regions importRegions() throws SQLException {
+    public static Regions importRegions(File file) throws SQLException {
         Regions regions = new Regions();
+        String DB_URL = "jdbc:sqlite:" + file.getAbsolutePath();
 
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
             if (conn != null) {

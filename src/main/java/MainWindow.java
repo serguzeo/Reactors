@@ -71,9 +71,7 @@ public class MainWindow extends JFrame {
                         return;
                     }
 
-                    fillTree();
-
-                    importButton.setText("Выбран: " + file.getName());
+                    fillTree(file);
                 }
             }
         });
@@ -112,12 +110,12 @@ public class MainWindow extends JFrame {
 
     }
 
-    private void fillTree() {
+    private void fillTree(File file) {
         try {
             DefaultTreeModel treeModel = (DefaultTreeModel) reactorsTree.getModel();
             DefaultMutableTreeNode root = new DefaultMutableTreeNode("Реакторы");
-            reactors = new TreeMap<>(DatabaseImporter.importReactors());
-            regions = DatabaseImporter.importRegions();
+            reactors = new TreeMap<>(DatabaseImporter.importReactors(file));
+            regions = DatabaseImporter.importRegions(file);
 
             // Проходим по словарю и добавляем узлы для каждой страны и их реакторов
             for (Map.Entry<String, List<Reactor>> entry : reactors.entrySet()) {
@@ -140,6 +138,7 @@ public class MainWindow extends JFrame {
             treeModel.setRoot(root);
             reactorsTree.setEnabled(true);
             goCalculateButton.setEnabled(true);
+            importButton.setText("Выбран: " + file.getName());
         }
 
         catch (SQLException e) {
