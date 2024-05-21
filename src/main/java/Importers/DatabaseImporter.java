@@ -59,23 +59,19 @@ public class DatabaseImporter {
                         Double loadFactor = rs.getDouble("loadFactor");
 
                         // Find the reactor and add the load factor
-                        for (List<Reactor> reactors : reactorsByCountry.values()) {
-                            for (Reactor reactor : reactors) {
-                                if (reactor.getName().equals(name)) {
-                                    reactor.addLoadFactor(year, loadFactor);
-                                    break;
-                                }
-                            }
-                        }
+                        reactorsByCountry.values().stream()
+                                .flatMap(List::stream)
+                                .filter(reactor -> reactor.getName().equals(name))
+                                .findFirst()
+                                .ifPresent(reactor -> reactor.addLoadFactor(year, loadFactor));
                     }
                 }
             }
 
-            for (List<Reactor> reactors : reactorsByCountry.values()) {
-                for (Reactor reactor : reactors) {
-                    reactor.fixLoadFactors();
-                }
-            }
+            // Fix load factors for all reactors
+            reactorsByCountry.values().stream()
+                    .flatMap(List::stream)
+                    .forEach(Reactor::fixLoadFactors);
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -91,9 +87,9 @@ public class DatabaseImporter {
 
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
             if (conn != null) {
-                String regionsQuery = "SELECT * FROM countries_regions";
+                String regionsQuery = "SELECT * FROM countries";
                 try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(regionsQuery)) {
+                     ResultSet rs = stmt.executeQuery(regionsQuery)) {
                     while (rs.next()) {
                         String country = rs.getString("country");
                         String region = rs.getString("region");
@@ -101,6 +97,9 @@ public class DatabaseImporter {
                     }
                 }
             }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            throw new SQLException(e);
         }
 
         return regions;
