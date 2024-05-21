@@ -1,5 +1,6 @@
+import Importers.DatabaseImporter;
 import Reactors.Reactor;
-import Reactors.ReactorsOwner;
+import Regions.Regions;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -11,15 +12,20 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import static Importers.UniversalReactorImporter.getUniversalReactorImporter;
 
 public class MainWindow extends JFrame {
 
     private JButton importButton;
     private JPanel panel;
     private JTree reactorsTree;
-    private ReactorsOwner reactorsOwner = new ReactorsOwner();
+    private JButton goCalculateButton;
+    private Regions regions;
+    private Map<String, List<Reactor>> reactors;
 
     public MainWindow() {
         setContentPane(panel);
@@ -35,7 +41,6 @@ public class MainWindow extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
     }
 
     private void addListeners() {
@@ -46,7 +51,7 @@ public class MainWindow extends JFrame {
                 JFileChooser fileChooser = new JFileChooser();
 
                 FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                        "Файлы .yaml / .xml / .json", "yaml", "xml", "json"
+                        "Файлы базы данных sqlite3 (.db)", "db"
                 );
                 fileChooser.setFileFilter(filter);
 
@@ -58,18 +63,13 @@ public class MainWindow extends JFrame {
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File file = fileChooser.getSelectedFile();
 
-                    if (!(file.getName().toLowerCase().endsWith(".xml") ||
-                            file.getName().toLowerCase().endsWith(".yaml") ||
-                            file.getName().toLowerCase().endsWith(".json"))) {
+                    if (!(file.getName().toLowerCase().endsWith(".db"))) {
                         JOptionPane.showMessageDialog(
-                                null, "Выберите файл формата .yaml / .xml / .json", "Ошибка",
+                                null, "Выберите файл формата .db", "Ошибка",
                                 JOptionPane.ERROR_MESSAGE
                         );
                         return;
                     }
-
-                    reactorsOwner.getReactorMap().clear();
-                    getUniversalReactorImporter().importReactorsFromFile(file, reactorsOwner);
 
                     fillTree();
 
@@ -89,32 +89,65 @@ public class MainWindow extends JFrame {
                 if (selectionPath == null) { return; }
 
                 DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectionPath.getLastPathComponent();
-                String nodeText = selectedNode.getUserObject().toString();
-                if (nodeText.equals("Реакторы")) { return; }
+                if (selectedNode.getUserObject() instanceof String) { return; }
 
-                Reactor selectedReactor = (Reactor) ((DefaultMutableTreeNode) selectionPath.getLastPathComponent()).getUserObject();
-
+                Reactor reactor = (Reactor) selectedNode.getUserObject();
                 JOptionPane.showMessageDialog(
-                        null,
-                        selectedReactor.getFullDescription(),
-                        "Полное описание реактора",
+                        null, reactor.getFullDescription(),
+                        "Реактор " + reactor.getName(),
                         JOptionPane.INFORMATION_MESSAGE
                 );
             }
         });
+
+        goCalculateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                GroupedCalculatorWindow dialog = new GroupedCalculatorWindow(regions, reactors);
+                dialog.pack(); // Устанавливаем размер окна в соответствии с содержимым
+                dialog.setLocationRelativeTo(null); // Отображаем окно по центру экрана
+                dialog.setVisible(true);
+            }
+        });
+
     }
 
     private void fillTree() {
-        DefaultTreeModel treeModel = (DefaultTreeModel) reactorsTree.getModel();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Реакторы");
+        try {
+            DefaultTreeModel treeModel = (DefaultTreeModel) reactorsTree.getModel();
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode("Реакторы");
+            reactors = new TreeMap<>(DatabaseImporter.importReactors());
+            regions = DatabaseImporter.importRegions();
 
-        for (String type : reactorsOwner.getReactorMap().keySet()) {
-            DefaultMutableTreeNode reactorNode = new DefaultMutableTreeNode(reactorsOwner.getReactorMap().get(type));
-            root.add(reactorNode);
+            // Проходим по словарю и добавляем узлы для каждой страны и их реакторов
+            for (Map.Entry<String, List<Reactor>> entry : reactors.entrySet()) {
+                String country = entry.getKey();
+                List<Reactor> reactorList = entry.getValue();
+
+                // Создаем узел для страны
+                DefaultMutableTreeNode countryNode = new DefaultMutableTreeNode(country);
+
+                // Добавляем узел страны к корневому узлу
+                root.add(countryNode);
+
+                // Добавляем узлы для каждого реактора в списке реакторов
+                for (Reactor reactor : reactorList) {
+                    DefaultMutableTreeNode reactorNode = new DefaultMutableTreeNode(reactor);
+                    countryNode.add(reactorNode);
+                }
+            }
+
+            treeModel.setRoot(root);
+            reactorsTree.setEnabled(true);
+            goCalculateButton.setEnabled(true);
         }
 
-        treeModel.setRoot(root);
-        reactorsTree.setEnabled(true);
+        catch (SQLException e) {
+            JOptionPane.showMessageDialog(
+                    null, "Ошибка при импорте базы данных", "Ошибка",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     public static void main(String[] args) {

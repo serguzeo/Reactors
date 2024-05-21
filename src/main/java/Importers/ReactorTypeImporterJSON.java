@@ -1,7 +1,7 @@
 package Importers;
 
-import Reactors.Reactor;
-import Reactors.ReactorsOwner;
+import Reactors.ReactorType;
+import Reactors.ReactorsTypesOwner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,10 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
-public class ReactorImporterJSON extends ReactorImporter{
+public class ReactorTypeImporterJSON extends ReactorTypeImporter{
 
     @Override
-    public void importReactorsFromFile(File file, ReactorsOwner reactorsOwner) {
+    public void importReactorsFromFile(File file, ReactorsTypesOwner reactorsOwner) {
         if (file.getName().endsWith(".json")) {
             ObjectMapper objectMapper = new ObjectMapper();
 
@@ -28,7 +28,7 @@ public class ReactorImporterJSON extends ReactorImporter{
                 String fieldName = fieldNameIterator.next();
                 JsonNode reactorNode = rootNode.get(fieldName);
                 if (reactorNode != null && reactorNode.isObject()) {
-                    Reactor reactor = parseReactorFromJsonNode(reactorNode);
+                    ReactorType reactor = parseReactorFromJsonNode(reactorNode);
                     reactorsOwner.addReactor(fieldName, reactor);
                 }
             }
@@ -39,8 +39,8 @@ public class ReactorImporterJSON extends ReactorImporter{
         }
     }
 
-    private Reactor parseReactorFromJsonNode(JsonNode reactorNode) {
-        return new Reactor (
+    private ReactorType parseReactorFromJsonNode(JsonNode reactorNode) {
+        return new ReactorType(
                 reactorNode.has("type") ? reactorNode.get("type").asText() : null,
                 reactorNode.has("class") ? reactorNode.get("class").asText() : null,
                 reactorNode.has("burnup") ? reactorNode.get("burnup").asDouble() : 0.0,

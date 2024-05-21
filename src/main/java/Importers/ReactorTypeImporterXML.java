@@ -1,7 +1,7 @@
 package Importers;
 
-import Reactors.Reactor;
-import Reactors.ReactorsOwner;
+import Reactors.ReactorType;
+import Reactors.ReactorsTypesOwner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,10 +16,10 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-public class ReactorImporterXML extends ReactorImporter{
+public class ReactorTypeImporterXML extends ReactorTypeImporter{
 
     @Override
-    public void importReactorsFromFile(File file, ReactorsOwner reactorsOwner) {
+    public void importReactorsFromFile(File file, ReactorsTypesOwner reactorsOwner) {
         if (file.getName().endsWith(".xml")) {
             try {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -33,7 +33,7 @@ public class ReactorImporterXML extends ReactorImporter{
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         if (nodeList.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
                             Element element = (Element) nodeList.item(i);
-                            Reactor reactor = parseReactorFromXmlElement(element);
+                            ReactorType reactor = parseReactorFromXmlElement(element);
                             reactorsOwner.addReactor(element.getNodeName(), reactor);
                         }
                     }
@@ -49,10 +49,10 @@ public class ReactorImporterXML extends ReactorImporter{
     }
 
 
-    private Reactor parseReactorFromXmlElement(Element element) {
+    private ReactorType parseReactorFromXmlElement(Element element) {
         String type = element.getNodeName();
         Map<String, String> attributes = getAttributes(element);
-        return new Reactor(
+        return new ReactorType(
                 type,
                 attributes.get("class"),
                 getDouble(attributes, "burnup"),

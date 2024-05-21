@@ -2,10 +2,10 @@ package Importers;
 
 public class UniversalReactorImporter {
 
-    public static ReactorImporter getUniversalReactorImporter() {
-        ReactorImporterJSON reactorImporterJSON = new ReactorImporterJSON();
-        ReactorImporterXML reactorImporterXML = new ReactorImporterXML();
-        ReactorImporterYAML reactorImporterYAML = new ReactorImporterYAML();
+    public static ReactorTypeImporter getUniversalReactorImporter() {
+        ReactorTypeImporterJSON reactorImporterJSON = new ReactorTypeImporterJSON();
+        ReactorTypeImporterXML reactorImporterXML = new ReactorTypeImporterXML();
+        ReactorTypeImporterYAML reactorImporterYAML = new ReactorTypeImporterYAML();
 
         reactorImporterXML.setNextImporter(reactorImporterYAML);
         reactorImporterJSON.setNextImporter(reactorImporterXML);

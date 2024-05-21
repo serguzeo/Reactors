@@ -1,16 +1,16 @@
 package Importers;
 
-import Reactors.Reactor;
-import Reactors.ReactorsOwner;
+import Reactors.ReactorType;
+import Reactors.ReactorsTypesOwner;
 import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Map;
 
-public class ReactorImporterYAML extends ReactorImporter {
+public class ReactorTypeImporterYAML extends ReactorTypeImporter {
 
     @Override
-    public void importReactorsFromFile(File file, ReactorsOwner reactorsOwner) {
+    public void importReactorsFromFile(File file, ReactorsTypesOwner reactorsOwner) {
         if (file.getName().endsWith(".yaml") || file.getName().endsWith(".yml")) {
             try {
                 Yaml yaml = new Yaml();
@@ -20,7 +20,7 @@ public class ReactorImporterYAML extends ReactorImporter {
                     Map<String, ?> map = (Map<String, ?>) object;
                     for (String key : map.keySet()) {
                         Map<?, ?> innerMap = (Map<?, ?>) map.get(key);
-                        Reactor reactor = parseReactorFromDict(innerMap);
+                        ReactorType reactor = parseReactorFromDict(innerMap);
                         reactorsOwner.addReactor(key, reactor);
                     }
                 }
@@ -35,8 +35,8 @@ public class ReactorImporterYAML extends ReactorImporter {
         }
     }
 
-    private Reactor parseReactorFromDict(Map<?, ?> innerMap) {
-        return new Reactor(
+    private ReactorType parseReactorFromDict(Map<?, ?> innerMap) {
+        return new ReactorType(
                 (String) innerMap.get("type"),
                 (String) innerMap.get("class"),
                 ((Number) innerMap.get("burnup")).doubleValue(),
