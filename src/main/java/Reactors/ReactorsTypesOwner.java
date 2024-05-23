@@ -15,7 +15,7 @@ public class ReactorsTypesOwner {
         this.reactorsMap = new HashMap<>();
 
         ReactorTypeImporter reactorImporter = UniversalReactorImporter.getUniversalReactorImporter();
-        reactorImporter.importReactorsFromFile(new File("files/ReactorType.json"), this);
+        reactorImporter.importReactorsFromFile(new File("./resources/ReactorType.json"), this);
     }
 
     public void addReactor(String key, ReactorType reactor) {
