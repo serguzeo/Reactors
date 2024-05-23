@@ -7,10 +7,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 
 public class ReactorTypeImporterJSON extends ReactorTypeImporter{
+    public void importReactorsFromStream(InputStream file, ReactorsTypesOwner reactorsOwner) {
+        try {
+            Path tempFile = Files.createTempFile("ReactorType", ".json");
+            tempFile.toFile().deleteOnExit();
 
+            // Копируем содержимое InputStream в временный файл
+            Files.copy(file, tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+            // Используем временный файл и передаем текущий экземпляр this
+            importReactorsFromFile(tempFile.toFile(), reactorsOwner);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     public void importReactorsFromFile(File file, ReactorsTypesOwner reactorsOwner) {
         if (file.getName().endsWith(".json")) {
